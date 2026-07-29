@@ -1,4 +1,4 @@
-# Quy trình lắp ráp và chú giải bộ gen *Bacillus* (WGS)
+# Quy trình lắp ráp và chú giải bộ gen vi khuẩn
 
 **Tóm tắt:** Đây là quy trình phân tích dữ liệu Whole Genome Sequencing (WGS) của mẫu vi khuẩn. Các bước chính bao gồm: kiểm tra chất lượng dữ liệu đầu vào, làm sạch adapter và lọc reads, thực hiện lắp ráp de novo, đánh giá chất lượng lắp ráp, phát hiện gen rRNA (bao gồm 16S) và trích xuất trình tự tương ứng, so sánh độ tương đồng genome (ANI) với genome tham chiếu để định danh loài, và cuối cùng là chú giải genome bằng công cụ Bakta. Hình dưới đây minh họa tổng quát luồng công việc; bảng tóm tắt các bước được trình bày bên dưới; và các phần chi tiết mô tả từng công cụ, lệnh, đầu vào/đầu ra, cùng các lưu ý thực thi được giải thích bên dưới.
 
@@ -93,7 +93,7 @@ dependencies:
   - bakta
 ```
 
-Đảm bảo đã cài `samtools` nếu cần (một số công cụ có thể phụ thuộc), và các database như *Barrnap* (sẵn trong conda) hay *Bakta DB* (xem hướng dẫn của Bakta). Ngoài ra, cần chuẩn bị tập tin FASTA của genome tham chiếu (ví dụ *Bacillus velezensis* FZB42) nếu sử dụng FastANI hoặc RagTag.
+Đảm bảo đã cài `samtools` nếu cần (một số công cụ có thể phụ thuộc), và các database như *Barrnap* (sẵn trong conda) hay *Bakta DB* (xem hướng dẫn của Bakta). Ngoài ra, cần chuẩn bị tập tin FASTA của genome tham chiếu nếu sử dụng FastANI hoặc RagTag.
 
 ## Cấu trúc thư mục
 

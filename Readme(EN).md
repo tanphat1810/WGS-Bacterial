@@ -1,6 +1,6 @@
-# Bacillus Whole-Genome Sequencing Pipeline
+# Bacteria Whole-Genome Sequencing Pipeline
 
-This workflow describes the steps to process paired-end Illumina reads from a *Bacillus* isolate, assemble its genome, and annotate the final assembly. It includes quality control, adapter trimming, de novo assembly, assembly evaluation, rRNA gene identification, reference-based scaffolding (optional), and genome annotation.
+This workflow describes the steps to process paired-end Illumina reads from a Bacteria isolate, assemble its genome, and annotate the final assembly. It includes quality control, adapter trimming, de novo assembly, assembly evaluation, rRNA gene identification, reference-based scaffolding (optional), and genome annotation.
 
 ## Prerequisites
 

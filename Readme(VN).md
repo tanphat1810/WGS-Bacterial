@@ -48,20 +48,20 @@ Thay thế `project/`, `RawRead/`, `sample/` bằng tên thực của dự án v
 
 ## IV. Bảng tóm tắt các công cụ
 
-| Bước | Công cụ        | Mục đích                                                    
-|:----:|:--------------|:------------------------------------------------------------|
-| 1    | FastQC          | Kiểm tra chất lượng  reads                         |
-| 2    | MultiQC         | Tổng hợp báo cáo      |
-| 3    | Fastp           | Loại bỏ bases chất lượng thấp, read ngắn, adapter     |
-| 4    | SeqKit stats    | Thống kê chỉ số cơ bản của reads (số reads, độ dài)              |
-| 5    | SPAdes          | Lắp ráp de novo trình tự genome vi khuẩn                       |
-| 6    | QUAST           | Đánh giá độ dài, N50, số contig, GC, lỗi assembly   |
-| 7    | Barrnap         | Dò tìm gene RNA (5S, 16S, 23S rRNA)                |
-| 8    | grep + bedtools | Trích xuất trình tự 16S rRNA từ GFF           |
-| 9    | FastANI         | Tính độ tương đồng genome với genome tham chiếu   |
-| 10   | MEGA12          | Xây dựng cây di truyền |
-| 11   | Unicycler       | Assembly cải thiện với bộ đọc ngắn (short reads)   |
-| 12   | RagTag          | Sắp xếp (scaffold) contigs theo genome tham chiếu                |
+| Bước | Công cụ         | Mục đích                                                    
+|:----:|:----------------|:----------------------------------------------------------------|
+| 1    | FastQC          | Kiểm tra chất lượng  reads                                      |
+| 2    | MultiQC         | Tổng hợp báo cáo                                                |
+| 3    | Fastp           | Loại bỏ bases chất lượng thấp, read ngắn, adapter               |
+| 4    | SeqKit stats    | Thống kê chỉ số cơ bản của reads (số reads, độ dài)             |
+| 5    | SPAdes          | Lắp ráp de novo trình tự genome vi khuẩn                        |
+| 6    | QUAST           | Đánh giá độ dài, N50, số contig, GC, lỗi assembly               |
+| 7    | Barrnap         | Dò tìm gene RNA (5S, 16S, 23S rRNA)                             |
+| 8    | grep + bedtools | Trích xuất trình tự 16S rRNA từ GFF                             |
+| 9    | FastANI         | Tính độ tương đồng genome với genome tham chiếu                 |
+| 10   | MEGA12          | Xây dựng cây di truyền                                          |
+| 11   | Unicycler       | Assembly cải thiện với bộ đọc ngắn (short reads)                |
+| 12   | RagTag          | Sắp xếp (scaffold) contigs theo genome tham chiếu               |
 | 13   | Bakta           | Chú giải bộ gen vi khuẩn: gene, CDS, rRNA, tRNA, AMR, VF, ...   |
 
 ## V. Mô tả chi tiết quy trình xử lý

@@ -2,58 +2,7 @@
 
 **Tóm tắt:** Đây là quy trình phân tích dữ liệu Whole Genome Sequencing (WGS) của mẫu vi khuẩn. Các bước chính bao gồm: kiểm tra chất lượng dữ liệu đầu vào, làm sạch adapter và lọc reads, thực hiện lắp ráp de novo, đánh giá chất lượng lắp ráp, phát hiện gen rRNA (bao gồm 16S) và trích xuất trình tự tương ứng, so sánh độ tương đồng genome (ANI) với genome tham chiếu để định danh loài, và cuối cùng là chú giải genome bằng công cụ Bakta. Hình dưới đây minh họa tổng quát luồng công việc; bảng tóm tắt các bước được trình bày bên dưới; và các phần chi tiết mô tả từng công cụ, lệnh, đầu vào/đầu ra, cùng các lưu ý thực thi được giải thích bên dưới.
 
-```mermaid
-flowchart LR
 
-    subgraph QC_RAW["QC dữ liệu thô"]
-        A["FastQC (raw)"] --> B["MultiQC (raw)"]
-    end
-
-    subgraph PROCESSING["Xử lý reads"]
-        B --> C["fastp (lọc reads)"]
-    end
-
-    subgraph QC_CLEAN["QC dữ liệu sạch"]
-        C --> D["FastQC (sau lọc)"]
-        D --> E["MultiQC (sau lọc)"]
-        E --> F["SeqKit stats (reads sạch)"]
-    end
-
-    F --> G["SPAdes (assembly)"]
-    G --> H["QUAST (đánh giá assembly)"]
-    H --> I{"Assembly đạt yêu cầu?"}
-
-    I -->|Đạt| J["Barrnap (dự đoán rRNA)"]
-    I -->|Không đạt| K["Unicycler (phương án thay thế)"]
-
-    K --> L["QUAST (đánh giá Unicycler)"]
-    L --> M{"Unicycler tốt hơn?"}
-
-    M -->|Có| J
-    M -->|Không| N{"Có genome tham chiếu?"}
-
-    N -->|Có| O["RagTag (scaffolding)"]
-    N -->|Không| J
-
-    O --> P["QUAST (đánh giá scaffold)"]
-    P --> J
-
-    subgraph RRNA["Phân tích rRNA"]
-        J --> Q["Trích xuất 16S bằng grep và bedtools"]
-        Q --> R["SeqKit stats (16S)"]
-    end
-
-    J --> S["FastANI (so sánh genome)"]
-    R --> T["Bakta (chú giải genome)"]
-    S --> T
-
-    style K stroke-dasharray: 5 5
-    style L stroke-dasharray: 5 5
-    style M stroke-dasharray: 5 5
-    style N stroke-dasharray: 5 5
-    style O stroke-dasharray: 5 5
-    style P stroke-dasharray: 5 5
-```
 
 **Giải thích sơ đồ:** Các bước màu liền mạch (QC, xử lý, assembly, chú giải) là bắt buộc. Các bước tác vụ phụ trợ hoặc thay thế (Unicycler, RagTag) được đánh dấu đường đứt nét và chỉ thực hiện khi cần (xem mục *Quyết định điều kiện* bên dưới).  
 

@@ -73,18 +73,20 @@ Thay thế `project/`, `RawRead/`, `sample/` bằng tên thực của dự án v
 
 - [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/) FastQC kiểm tra chất lượng reads (phân phối điểm chất lượng theo base, GC content, duplicated reads, adapter…); MultiQC tổng hợp kết quả báo cáo.
   
-  ```bash
-  Fastqc <path/to/input.fastq.gz> -o <path/to/output_dir> -t 8
-  multiqc <multiqc <path_to_fastqc_results> -o <path_to_multiqc_report>
-  ```
-  (Thay `<path/to/input.fastq.gz>` bằng đường dẫn thực tới file FASTQ thô. `-t` là số luồng CPU.)
+```bash
+Fastqc <path/to/input.fastq.gz> -o <path/to/output_dir> -t 8
+multiqc <path_to_fastqc_results> -o <path_to_multiqc_report>
+```
+(Thay `<path/to/input.fastq.gz>` bằng đường dẫn thực tới file FASTQ thô. `-t` là số luồng CPU.)
 
+<div align="justify">
 
-  <div align="justify">
-Dữ liệu đầu vào [Đường dẫn file fastq đầu vào] của FastQC là các tệp FASTQ thô ở định dạng .fastq hoặc nén .fastq.gz. Công cụ này sẽ khởi tạo các file báo cáo fastqc.zip và fastqc.html riêng biệt cho từng tệp dữ liệu .fastq trong thư mục đầu ra được chỉ định. Đồng thời để công cụ chạy nhanh hơn có thể tăng số luồng bằng tham số -t. Sau đó, MultiQC nhận đầu vào [Đường dẫn thư mục đầu vào] là thư mục chứa đầu ra của FastQC và tạo một báo cáo tổng hợp duy nhất report.html và lưu trong thư mục đầu ra được chỉ định. Đầu ra giúp kiểm tra các cảnh báo (warnings) như adapter còn sót, base chất lượng thấp, GC bất thường...
+* Dữ liệu đầu vào `[Đường dẫn file fastq đầu vào]` của FastQC là các tệp FASTQ thô ở định dạng `.fastq` hoặc nén `.fastq.gz`. Công cụ này sẽ khởi tạo các file báo cáo `fastqc.zip` và `fastqc.html` riêng biệt cho từng tệp dữ liệu `.fastq` trong thư mục đầu ra được chỉ định. Đồng thời để công cụ chạy nhanh hơn có thể tăng số luồng bằng tham số `-t`. Sau đó, MultiQC nhận đầu vào `[Đường dẫn thư mục đầu vào]` là thư mục chứa đầu ra của FastQC và tạo một báo cáo tổng hợp duy nhất `report.html` và lưu trong thư mục đầu ra được chỉ định. Đầu ra giúp kiểm tra các cảnh báo (warnings) như adapter còn sót, base chất lượng thấp, GC bất thường...
+
 </div>
 
 ### 5.2. Làm sạch reads (fastp)
+
 
 - [fastp](https://github.com/opengene/fastp) – công cụ cắt và lọc reads.
 - **Single-End**

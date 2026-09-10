@@ -4,51 +4,22 @@
 
 Đây là quy trình phân tích dữ liệu Whole Genome Sequencing (WGS) của mẫu vi khuẩn. Các bước chính bao gồm: kiểm tra chất lượng dữ liệu đầu vào, làm sạch adapter và lọc reads, thực hiện lắp ráp de novo, đánh giá chất lượng lắp ráp, phát hiện gen rRNA (bao gồm 16S) và trích xuất trình tự tương ứng, so sánh độ tương đồng genome (ANI) với genome tham chiếu để định danh loài, và cuối cùng là chú giải genome bằng công cụ Bakta. Hình dưới đây minh họa tổng quát luồng công việc; bảng tóm tắt các bước được trình bày bên dưới; và các phần chi tiết mô tả từng công cụ, lệnh, đầu vào/đầu ra, cùng các lưu ý thực thi được giải thích bên dưới.
 
-![Quy trình lắp ráp và chú giải bộ gen](QUY%20TRÌNH%20LẮP%20RÁP%20VÀ%20CHÚ%20GIẢI%20BỘ%20GEN%20VI%20KHUẨN.svg)
+![Quy trình lắp ráp và chú giải bộ gen](QUY%20TRÌNH%20LẮP%20RÁP%20VÀ%20CHÚ%20GIẢI%20BỘ%20GEN%20VI%20KHUẨN.svg) 
 
-**Giải thích sơ đồ:** Các bước màu liền mạch (QC, xử lý, assembly, chú giải) là bắt buộc. Các bước tác vụ phụ trợ hoặc thay thế (Unicycler, RagTag) được đánh dấu đường đứt nét và chỉ thực hiện khi cần (xem mục *Quyết định điều kiện* bên dưới).  
+## II. Chuẩn bị môi trường phần mềm
 
-## Chuẩn bị môi trường phần mềm
-
-Quy trình yêu cầu cài đặt nhiều công cụ bioinformatics phổ biến. Cách đơn giản là tạo một môi trường `conda` mới, ví dụ:
+Quy trình phân tích yêu cầu một môi trường conda để cài đặt các công cụ bioinformatics phổ biến
 
 ```bash
-conda create -n wgs_bacillus -c conda-forge -c bioconda \
-    fastqc multiqc fastp seqkit spades quast barrnap bedtools \
-    fastani unicycler ragtag bakta
-conda activate wgs_bacillus
+conda create -n <env> -c conda-forge -c bioconda <Tool>
+conda activate <env>
 ```
 
-*(Các phiên bản cụ thể có thể được chỉ định, tùy ý. Nếu Bakta yêu cầu ban đầu, có thể cần chạy `bakta_db install` để tải database; Barrnap đã có sẵn các mô hình HMM rRNA sau khi cài)*.  
-
-Hoặc sử dụng tệp YAML ví dụ (ở dự án có thể kèm file `environment.yml`) như sau:
-
-```yaml
-name: wgs_bacillus
-channels:
-  - conda-forge
-  - bioconda
-dependencies:
-  - python=3.9
-  - fastqc
-  - multiqc
-  - fastp
-  - seqkit
-  - spades
-  - quast
-  - barrnap
-  - bedtools
-  - fastani
-  - unicycler
-  - ragtag
-  - bakta
-```
-
-Đảm bảo đã cài `samtools` nếu cần (một số công cụ có thể phụ thuộc), và các database như *Barrnap* (sẵn trong conda) hay *Bakta DB* (xem hướng dẫn của Bakta). Ngoài ra, cần chuẩn bị tập tin FASTA của genome tham chiếu nếu sử dụng FastANI hoặc RagTag.
+*(Các phiên bản cụ thể của từng công cụ có thể được chỉ định, tùy ý. Một số công cụ cần database như Bakta nếu lần đầu sử dụng, có thể cần chạy bakta_db install để tải database; một số công cụ Barrnap đã có sẵn các mô hình HMM rRNA sau khi cài thì không cần tự cài, trừ trường hợp tự setup database mong muốn).*.  
 
 ## Cấu trúc thư mục
 
-Một ví dụ về cấu trúc thư mục cho quy trình này:
+Ví dụ về cấu trúc thư mục cho quy trình này:
 
 ```
 project/
@@ -75,31 +46,25 @@ project/
 
 Thay thế `project/`, `RawRead/`, `sample/` bằng tên thực của dự án và mẫu tương ứng. Mỗi bước chạy ra kết quả ở thư mục thích hợp như trên.
 
-## Bảng tóm tắt các bước
+## IV. Bảng tóm tắt các công cụ
 
-| Bước | Công cụ        | Mục đích                                                     | Đầu vào chính                  | Đầu ra chính                    | Thực hiện khi               | Tham số chính           |
+| Bước | Công cụ        | Mục đích                                                    
 |:----:|:--------------|:------------------------------------------------------------|:------------------------------|:-------------------------------|:---------------------------|:-------------------------|
-| 1    | FastQC        | Kiểm tra chất lượng ban đầu của reads                         | Tất cả file FASTQ thô         | HTML/ZIP báo cáo FastQC        | Bắt buộc                   | `-t <threads>`          |
-| 2    | MultiQC       | Tổng hợp báo cáo FastQC nhiều mẫu thành 1 báo cáo tổng thể     | Thư mục chứa kết quả FastQC    | `multiqc_report.html`, thư mục `multiqc_data/` | Bắt buộc | —           |
-| 3    | fastp         | Tách adapter, cắt bỏ bases chất lượng thấp, lọc read ngắn     | R1.fastq, R2.fastq thô         | R1.clean.fastq, R2.clean.fastq + báo cáo HTML/JSON | Bắt buộc | `--detect_adapter_for_pe`, chất lượng cắt, chiều dài tối thiểu |
-| 4    | FastQC       | Kiểm tra chất lượng dữ liệu sau khi lọc                        | Fastq đã lọc từ bước 3        | Báo cáo FastQC (HTML/ZIP)      | Bắt buộc                   | `-t <threads>`          |
-| 5    | MultiQC      | Tổng hợp báo cáo FastQC của dữ liệu đã lọc                     | Thư mục FastQC (bước 4)        | `multiqc_report.html`          | Bắt buộc                   | —                       |
-| 6    | SeqKit stats | Tính thống kê cơ bản của reads (số reads, độ dài)              | R1.clean.fastq, R2.clean.fastq | Bảng thống kê in ra màn hình   | Bắt buộc                   | —                       |
-| 7    | SPAdes       | Lắp ráp de novo trình tự genome vi khuẩn                       | R1.clean.fastq, R2.clean.fastq | `contigs.fasta`, (có thể có `scaffolds.fasta`) và các file log | Bắt buộc | `--isolate`, `-t <threads>`, `-m <RAM>` |
-| 8    | QUAST        | Đánh giá độ dài, N50, số contig, GC, lỗi lắp ráp của assembly   | `contigs.fasta` (có thể có tham chiếu) | Báo cáo QUAST (HTML, TSV, PDF)  | Bắt buộc                   | `-t <threads>`; `-r ref.fasta` (nếu có) |
-| 9    | Barrnap      | Dò tìm gene RNA (5S, 16S, 23S rRNA) trong genome                | `contigs.fasta`                | GFF3 ghi tọa độ rRNA           | Bắt buộc                   | `--kingdom bac` (HMM của vi khuẩn) |
-| 10   | grep + bedtools | Trích xuất trình tự 16S rRNA từ GFF (theo strand)           | `*.gff` từ Barrnap             | `16S.fasta` (trình tự 16S)     | Tùy điều kiện (nếu tìm thấy 16S) | `grep "16S_rRNA" rrna.gff`; `bedtools getfasta -fi contigs.fasta -bed 16S.gff -s -name` |
-| 11   | SeqKit stats | Thống kê độ dài và số lượng các trình tự 16S (đa phần ~1500 bp) | `16S.fasta`                   | Thống kê in ra màn hình       | Tùy chọn (kiểm tra 16S)   | —                       |
-| 12   | FastANI      | Tính độ tương đồng toàn bộ genome (ANI) với genome tham chiếu   | `contigs.fasta`, genome_ref.fasta | File kết quả ANI (tab-delimited) | Có tham chiếu             | `-q contigs.fasta -r ref.fasta -o out.ani` |
-| 13   | Unicycler    | Lắp ráp thêm (thay thế SPAdes) với bộ đọc ngắn (short reads)   | R1.clean.fastq, R2.clean.fastq | FASTA assembly (thường `assembly.fasta`), log | Có điều kiện (nếu SPAdes kém) | `-1 reads_1.fastq -2 reads_2.fastq -o out/ -t <threads>` |
-| 14   | QUAST        | Đánh giá chất lượng assembly từ Unicycler                       | Assembly Unicycler (contigs)   | Báo cáo QUAST mới             | Có điều kiện              | Như bước 8              |
-| 15   | RagTag       | Sắp xếp (scaffold) contigs theo genome tham chiếu                | `contigs.fasta`, ref.fasta     | `ragtag.scaffold.fasta`, AGP    | Có điều kiện (nếu assembly phân mảnh & có ref.) | `scaffold ref.fa contigs.fa` |
-| 16   | QUAST + SeqKit | Đánh giá scaffold (số contig, N50, GC, số ký tự N)          | `ragtag.scaffold.fasta`       | Báo cáo QUAST, bảng thống kê   | Có điều kiện              | Như bước 8, thêm đếm N: `grep -o "N" scaffold.fasta \| wc -l` |
-| 17   | Bakta        | Chú giải bộ gen vi khuẩn: gene, CDS, rRNA, tRNA, AMR, VF, ...   | Assembly cuối cùng (contigs/scaffolds) | GFF3, GenBank, EMBL, FAA, FFN, TSV, JSON | Bắt buộc (bước kết thúc khi thành công) | `-i assembly.fasta -o bakta_out/ -t <threads> --prefix <sample>` |
+| 1    | FastQC          | Kiểm tra chất lượng  reads                         |
+| 2    | MultiQC         | Tổng hợp báo cáo      |
+| 3    | Fastp           | Loại bỏ bases chất lượng thấp, read ngắn, adapter     |
+| 4    | SeqKit stats    | Thống kê chỉ số cơ bản của reads (số reads, độ dài)              |
+| 5    | SPAdes          | Lắp ráp de novo trình tự genome vi khuẩn                       |
+| 6    | QUAST           | Đánh giá độ dài, N50, số contig, GC, lỗi assembly   |
+| 7    | Barrnap         | Dò tìm gene RNA (5S, 16S, 23S rRNA)                |
+| 8    | grep + bedtools | Trích xuất trình tự 16S rRNA từ GFF           |
+| 9    | FastANI         | Tính độ tương đồng genome với genome tham chiếu   |
+| 10   | MEGA12          | Xây dựng cây di truyền |
+| 11   | Unicycler       | Assembly cải thiện với bộ đọc ngắn (short reads)   |
+| 12   | RagTag          | Sắp xếp (scaffold) contigs theo genome tham chiếu                |
+| 13   | Bakta           | Chú giải bộ gen vi khuẩn: gene, CDS, rRNA, tRNA, AMR, VF, ...   |
 
-*(Bước 13–16 có thể lặp lại tùy kết quả: sau Unicycler chọn assembly tốt nhất; nếu cần và có tham chiếu gần, chạy RagTag để xếp lại contigs. Bước 10–11 (16S) chỉ làm khi Barrnap tìm thấy gene 16S. FastANI yêu cầu có genome tham chiếu thuộc loài gần. Các tham số chính ví dụ như chỉ định number of threads (`-t`) hoặc chế độ (`--isolate`) đã được ghi chú.)*
-
-## Mô tả chi tiết các bước
+## V. Mô tả chi tiết quy trình xử lý
 
 ### Bước 1: Kiểm tra chất lượng dữ liệu thô (FastQC, MultiQC)
 

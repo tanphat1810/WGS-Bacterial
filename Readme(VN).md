@@ -78,9 +78,9 @@ Thay thế `project/`, `RawRead/`, `sample/` bằng tên thực của dự án v
 - Dữ liệu đầu vào [Đường dẫn file fastq đầu vào] của FastQC là các tệp FASTQ thô ở định dạng .fastq hoặc nén .fastq.gz. Công cụ này sẽ khởi tạo các file báo cáo fastqc.zip và fastqc.html riêng biệt cho từng tệp dữ liệu .fastq trong thư mục đầu ra được chỉ định. Đồng thời để công cụ chạy nhanh hơn có thể tăng số luồng bằng tham số -t.
 Sau đó, MultiQC nhận đầu vào [Đường dẫn thư mục đầu vào] là thư mục chứa đầu ra của FastQC và tạo một báo cáo tổng hợp duy nhất report.html và lưu trong thư mục đầu ra được chỉ định. Đầu ra giúp kiểm tra các cảnh báo (warnings) như adapter còn sót, base chất lượng thấp, GC bất thường...
 
-### Bước 2: Làm sạch reads (fastp)
+### 5.2. Làm sạch reads (fastp)
 
-- **Công cụ:** [fastp](https://github.com/opengene/fastp) – công cụ nhanh gọn cho cắt và lọc reads.
+- [fastp](https://github.com/opengene/fastp) – công cụ cắt và lọc reads.
 - **Lệnh mẫu:** 
   ```bash
   fastp \

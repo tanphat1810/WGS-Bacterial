@@ -15,8 +15,9 @@ Quy trình phân tích yêu cầu một môi trường conda để cài đặt c
 conda create -n <env> -c conda-forge -c bioconda <Tool>
 conda activate <env>
 ```
-
+<div align="justify">
 *(Các phiên bản cụ thể của từng công cụ có thể được chỉ định, tùy ý. Một số công cụ cần database như Bakta nếu lần đầu sử dụng, có thể cần chạy bakta_db install để tải database; một số công cụ Barrnap đã có sẵn các mô hình HMM rRNA sau khi cài thì không cần tự cài, trừ trường hợp tự setup database mong muốn).*.  
+</div>
 
 ## Cấu trúc thư mục
 

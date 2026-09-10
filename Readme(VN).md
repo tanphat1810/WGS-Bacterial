@@ -119,24 +119,31 @@ fastp \
   --html <path/to/output.html> \
   --json <path/to/output.json>
 ```
+
+<div align="justify">
+  
 Công cụ có thể chạy cả ở dạng Single-End và Pair-End. Single end là phương pháp giải trình tự mà máy chỉ đọc các base (nucleotide) từ một đầu duy nhất của đoạn DNA mục tiêu (thường bắt đầu từ đầu 5' và chạy theo một chiều). Kết quả tạo ra một đoạn đọc đơn (Single Read) cho mỗi mảnh DNA. Paired-end (PE) Sequencing (Giải trình tự đọc cặp): Là phương pháp giải trình tự mà máy sẽ đọc các base từ cả hai đầu (đầu 5' và đầu 3') của cùng một đoạn DNA mục tiêu. Quá trình này tạo ra hai đoạn đọc riêng biệt (được gọi là Forward Read/Read 1 và Reverse Read/Read 2). Tuy nhiên ở quy trình này chủ yếu tập trung pair end do độ chính xác cao.
- 
-Đường dẫn đầu vào được chỉ định bao gồm 2 file là R1 (cho file forward) và R2 (cho file Reverd), các tham số bao gồm:
--i Đường dẫn đến file chứa các đoạn đọc xuôi (R1) đầu vào (định dạng .fastq hoặc .fastq.gz). 
--I Đường dẫn đến file chứa các đoạn đọc ngược (R2) đầu vào.
--o Đường dẫn để xuất file đầu ra từ R1 sau khi đã lọc và cắt.
--O Đường dẫn để xuất file đầu ra từ R1 sau khi đã lọc và cắt.
---detect_adapter_for_pe Bật tính năng tự động phát hiện trình tự adapter.
---cut_right Sẽ quét bắt đầu từ 5' đến đầu 3' (từ trái sang phải).
---cut_right_window_size  Đặt kích thước khi quét
---cut_right_mean_quality Ngưỡng chất lượng trung bình của cửa sổ.
---qualified_quality_phred Quy định một base được coi là "đạt chất lượng" (qualified) nếu chất lượng của toàn read đó lớn hơn hoặc bằng ngưỡng
---unqualified_percent_limit Giới hạn tỷ lệ base kém chất lượng tối đa cho phép trong một read. Thông số đặt sẽ chuyển thành dạng phần trăm (%). Nếu một read chứa số base có chất lượng thấp hơn ngưỡng trên, toàn bộ read đó sẽ bị loại bỏ.
---length_required Bộ lọc chiều dài tối thiểu, loại bỏ những reads có chiều dài thấp hơn ngưỡng.
---correction Bật tính năng tự động sửa lỗi base (base correction) cho dữ liệu paired-end. Thuật toán sẽ tìm vùng chồng lấn giữa Read 1 và Read 2, nếu có sự sai khác về base ở vùng này, base có chất lượng cao hơn sẽ được dùng để sửa cho base có chất lượng thấp hơn.
---thread Chọn số luồng (threads) của CPU để xử lý song song, giúp tăng tốc độ chạy lệnh.
---html Đường dẫn xuất báo cáo chất lượng định dạng HTML (có thể mở bằng trình duyệt web để xem biểu đồ trực quan).
---json Đường dẫn xuất báo cáo định dạng JSON (dùng để lưu trữ dữ liệu thô của báo cáo, thuận tiện cho các script lập trình xử lý tiếp).
+
+</div>
+ 
+Đường dẫn đầu vào được chỉ định bao gồm 2 file là R1 (cho file forward) và R2 (cho file Reverse), các tham số bao gồm:
+
+> * **-i**: Đường dẫn đến file chứa các đoạn đọc xuôi (R1) đầu vào (định dạng `.fastq` hoặc `.fastq.gz`). 
+> * **-I**: Đường dẫn đến file chứa các đoạn đọc ngược (R2) đầu vào.
+> * **-o**: Đường dẫn để xuất file đầu ra từ R1 sau khi đã lọc và cắt.
+> * **-O**: Đường dẫn để xuất file đầu ra từ R2 sau khi đã lọc và cắt. *(Sửa lỗi R1 thành R2)*
+> * **--detect_adapter_for_pe**: Bật tính năng tự động phát hiện trình tự adapter.
+> * **--cut_right**: Sẽ quét bắt đầu từ 5' đến đầu 3' (từ trái sang phải).
+> * **--cut_right_window_size**: Đặt kích thước khi quét.
+> * **--cut_right_mean_quality**: Ngưỡng chất lượng trung bình của cửa sổ.
+> * **--qualified_quality_phred**: Quy định một base được coi là "đạt chất lượng" (qualified) nếu chất lượng của toàn read đó lớn hơn hoặc bằng ngưỡng.
+> * **--unqualified_percent_limit**: Giới hạn tỷ lệ base kém chất lượng tối đa cho phép trong một read. Thông số đặt sẽ chuyển thành dạng phần trăm (%). Nếu một read chứa số base có chất lượng thấp hơn ngưỡng trên, toàn bộ read đó sẽ bị loại bỏ.
+> * **--length_required**: Bộ lọc chiều dài tối thiểu, loại bỏ những reads có chiều dài thấp hơn ngưỡng.
+> * **--correction**: Bật tính năng tự động sửa lỗi base (base correction) cho dữ liệu paired-end. Thuật toán sẽ tìm vùng chồng lấn giữa Read 1 và Read 2, nếu có sự sai khác về base ở vùng này, base có chất lượng cao hơn sẽ được dùng để sửa cho base có chất lượng thấp hơn.
+> * **--thread**: Chọn số luồng (threads) của CPU để xử lý song song, giúp tăng tốc độ chạy lệnh.
+> * **--html**: Đường dẫn xuất báo cáo chất lượng định dạng HTML (có thể mở bằng trình duyệt web để xem biểu đồ trực quan).
+> * **--json**: Đường dẫn xuất báo cáo định dạng JSON (dùng để lưu trữ dữ liệu thô của báo cáo, thuận tiện cho các script lập trình xử lý tiếp).
+
 
 
 ### Bước 3: Kiểm tra dữ liệu sau khi làm sạch (FastQC, MultiQC, SeqKit)

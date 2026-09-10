@@ -75,8 +75,8 @@ Thay thế `project/`, `RawRead/`, `sample/` bằng tên thực của dự án v
   multiqc <multiqc <path_to_fastqc_results> -o <path_to_multiqc_report>
   ```
   (Thay `<path/to/input.fastq.gz>` bằng đường dẫn thực tới file FASTQ thô. `-t` là số luồng CPU.)
-- **Giải thích:** FastQC tạo báo cáo HTML/ZIP riêng cho mỗi file input. MultiQC quét thư mục kết quả FastQC và sinh một báo cáo tổng hợp duy nhất, giúp so sánh đồng thời nhiều mẫu hoặc nhiều luồng phân tích.
-- **Đầu ra:** Các file `fastqc.zip` và `fastqc.html` trong `QC/FastQC_raw/`, và file `multiqc_report.html` trong `QC/MultiQC_raw/`. Kiểm tra các cảnh báo (warnings) như adapter còn sót, base chất lượng thấp, GC bất thường...
+- Dữ liệu đầu vào [Đường dẫn file fastq đầu vào] của FastQC là các tệp FASTQ thô ở định dạng .fastq hoặc nén .fastq.gz. Công cụ này sẽ khởi tạo các file báo cáo fastqc.zip và fastqc.html riêng biệt cho từng tệp dữ liệu .fastq trong thư mục đầu ra được chỉ định. Đồng thời để công cụ chạy nhanh hơn có thể tăng số luồng bằng tham số -t.
+Sau đó, MultiQC nhận đầu vào [Đường dẫn thư mục đầu vào] là thư mục chứa đầu ra của FastQC và tạo một báo cáo tổng hợp duy nhất report.html và lưu trong thư mục đầu ra được chỉ định. Đầu ra giúp kiểm tra các cảnh báo (warnings) như adapter còn sót, base chất lượng thấp, GC bất thường...
 
 ### Bước 2: Làm sạch reads (fastp)
 

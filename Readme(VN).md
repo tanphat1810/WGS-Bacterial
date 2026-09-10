@@ -81,21 +81,22 @@ Sau đó, MultiQC nhận đầu vào [Đường dẫn thư mục đầu vào] l�
 ### 5.2. Làm sạch reads (fastp)
 
 - [fastp](https://github.com/opengene/fastp) – công cụ cắt và lọc reads.
-- **Lệnh mẫu:** 
+- **Single-End**
+- 
   ```bash
-  fastp \
-    -i RawRead/sample_R1.fastq.gz \
-    -I RawRead/sample_R2.fastq.gz \
-    -o sample/sample_R1.clean.fastq \
-    -O sample/sample_R2.clean.fastq \
-    --detect_adapter_for_pe \
-    --cut_right --cut_right_window_size 4 --cut_right_mean_quality 20 \
-    --qualified_quality_phred 20 --unqualified_percent_limit 20 \
-    --length_required 50 --correction \
-    --thread 8 \
-    --html sample/fastp_report.html \
-    --json sample/fastp_report.json
-  ```
+fastp \
+  -i <path/to/input.fastq> \
+  -o <path/to/output.fastq> \
+  --cut_right --cut_right_window_size 4 --cut_right_mean_quality 20 \
+  --qualified_quality_phred 20 --unqualified_percent_limit 20 \
+  --length_required 50 \
+  --thread 8 \
+  --html <path/to/output.html> \
+  --json <path/to/output.json>
+```
+  
+- **Pair-end**
+
   (Điền đúng tên file đầu vào / đầu ra tương ứng. Tùy chọn `--detect_adapter_for_pe` tự phát hiện và loại bỏ adapter trong dữ liệu paired-end. Các tham số `cut_right`, `qualified_quality_phred`, v.v. thiết lập ngưỡng chất lượng và chiều dài tối thiểu sau lọc.)
 - **Giải thích:** fastp cắt adapter, loại bỏ bases có chất lượng thấp ở đầu/cuối read (sử dụng sliding window) và loại bỏ các read có nhiều base kém (theo `--qualified_quality_phred`, `--unqualified_percent_limit`). Tùy chọn `--correction` kích hoạt so khớp đoạn chồng chéo giữa hai đầu read để sửa lỗi. Fastp tạo báo cáo HTML/JSON thống kê số lượng reads giữ lại, phân phối chất lượng, tiết lộ adapter bị loại.
 - **Đầu ra:** Hai file FASTQ sạch (`sample_R1.clean.fastq`, `sample_R2.clean.fastq`) trong thư mục mẫu; file `fastp_report.html` và `fastp_report.json` cho báo cáo. Nếu dung lượng bộ nhớ (RAM) thấp, có thể cân nhắc dùng `--thread` hợp lý.

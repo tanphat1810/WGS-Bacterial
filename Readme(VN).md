@@ -146,17 +146,18 @@ Công cụ có thể chạy cả ở dạng Single-End và Pair-End. Single end 
 
 
 
-### Bước 3: Kiểm tra dữ liệu sau khi làm sạch (FastQC, MultiQC, SeqKit)
+### 5.3. Kiểm tra dữ liệu sau khi làm sạch (FastQC, MultiQC, SeqKit)
 
-- **Công cụ:** FastQC/MultiQC như ở Bước 1, và [SeqKit](https://bioinf.shenwei.me/seqkit/) để thống kê reads.
-- **Lệnh mẫu:** 
-  ```bash
-  fastqc sample/*.clean.fastq -o QC/FastQC_clean -t 8
-  multiqc QC/FastQC_clean -o QC/MultiQC_clean
-  seqkit stats sample/sample_R1.clean.fastq sample/sample_R2.clean.fastq
-  ```
-- **Giải thích:** Chạy FastQC và MultiQC lại trên dữ liệu sạch để chắc rằng chất lượng đọc đã được cải thiện (ít lỗi, ít adapter hơn). SeqKit `stats` tính số lượng reads, tổng ký tự và độ dài ngắn/dài nhất, kiểm tra có read bị ngắn bất thường. Nếu thấy vấn đề (ví dụ quá ít reads, phân phối chiều dài lạ), cần điều chỉnh tham số fastp hoặc kiểm tra lỗi kỹ hơn.
-- **Đầu ra:** Báo cáo FastQC/MultiQC trong `QC/FastQC_clean` và `QC/MultiQC_clean`; bảng thông số SeqKit in ra terminal.
+Sử dụng FastQC/MultiQC như ở Bước 1, và SeqKit để thống kê reads.
+
+```bash
+seqkit stats [Đường dẫn file đầu vào R1 đã lọc] [Đường dẫn file đầu vào R2 đã lọc] -o [Đường dẫn file ra dạng .txt]
+```
+
+<div align="justify">
+FastQC và MultiQC kiểm tra dữ liệu sạch để chắc rằng chất lượng đọc đã được cải thiện (ít lỗi, ít adapter hơn). Tham số stats trong Seqkit tính số lượng reads, tổng ký tự và độ dài ngắn/dài nhất, kiểm tra có read bị ngắn bất thường. Nếu thấy vấn đề (ví dụ quá ít reads, phân phối chiều dài lạ), cần điều chỉnh tham số fastp hoặc kiểm tra lỗi kỹ hơn.
+</div>
+
 
 ### Bước 4: Lắp ráp de novo (SPAdes)
 

@@ -1,9 +1,9 @@
 # Quy trình lắp ráp và chú giải bộ gen vi khuẩn
 
 **I. Tóm tắt:** 
-
+<div align="justify">
 Đây là quy trình phân tích dữ liệu Whole Genome Sequencing (WGS) của mẫu vi khuẩn. Các bước chính bao gồm: kiểm tra chất lượng dữ liệu đầu vào, làm sạch adapter và lọc reads, thực hiện lắp ráp de novo, đánh giá chất lượng lắp ráp, phát hiện gen rRNA (bao gồm 16S) và trích xuất trình tự tương ứng, so sánh độ tương đồng genome (ANI) với genome tham chiếu để định danh loài, và cuối cùng là chú giải genome bằng công cụ Bakta. Hình dưới đây minh họa tổng quát luồng công việc; bảng tóm tắt các bước được trình bày bên dưới; và các phần chi tiết mô tả từng công cụ, lệnh, đầu vào/đầu ra, cùng các lưu ý thực thi được giải thích bên dưới.
-
+</div>
 ![Quy trình lắp ráp và chú giải bộ gen](QUY%20TRÌNH%20LẮP%20RÁP%20VÀ%20CHÚ%20GIẢI%20BỘ%20GEN%20VI%20KHUẨN.svg) 
 
 ## II. Chuẩn bị môi trường phần mềm
@@ -111,7 +111,7 @@ fastp \
   --html <path/to/output.html> \
   --json <path/to/output.json>
 ```
-  Công cụ có thể chạy cả ở dạng Single-End và Pair-End. Single end là phương pháp giải trình tự mà máy chỉ đọc các base (nucleotide) từ một đầu duy nhất của đoạn DNA mục tiêu (thường bắt đầu từ đầu 5' và chạy theo một chiều). Kết quả tạo ra một đoạn đọc đơn (Single Read) cho mỗi mảnh DNA. Paired-end (PE) Sequencing (Giải trình tự đọc cặp): Là phương pháp giải trình tự mà máy sẽ đọc các base từ cả hai đầu (đầu 5' và đầu 3') của cùng một đoạn DNA mục tiêu. Quá trình này tạo ra hai đoạn đọc riêng biệt (được gọi là Forward Read/Read 1 và Reverse Read/Read 2). Tuy nhiên ở quy trình này chủ yếu tập trung pair end do độ chính xác cao.
+Công cụ có thể chạy cả ở dạng Single-End và Pair-End. Single end là phương pháp giải trình tự mà máy chỉ đọc các base (nucleotide) từ một đầu duy nhất của đoạn DNA mục tiêu (thường bắt đầu từ đầu 5' và chạy theo một chiều). Kết quả tạo ra một đoạn đọc đơn (Single Read) cho mỗi mảnh DNA. Paired-end (PE) Sequencing (Giải trình tự đọc cặp): Là phương pháp giải trình tự mà máy sẽ đọc các base từ cả hai đầu (đầu 5' và đầu 3') của cùng một đoạn DNA mục tiêu. Quá trình này tạo ra hai đoạn đọc riêng biệt (được gọi là Forward Read/Read 1 và Reverse Read/Read 2). Tuy nhiên ở quy trình này chủ yếu tập trung pair end do độ chính xác cao.
  
 Đường dẫn đầu vào được chỉ định bao gồm 2 file là R1 (cho file forward) và R2 (cho file Reverd), các tham số bao gồm:
 -i Đường dẫn đến file chứa các đoạn đọc xuôi (R1) đầu vào (định dạng .fastq hoặc .fastq.gz). 

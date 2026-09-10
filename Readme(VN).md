@@ -48,7 +48,7 @@ Thay thế `project/`, `RawRead/`, `sample/` bằng tên thực của dự án v
 
 ## IV. Bảng tóm tắt các công cụ
 
-| Bước | Công cụ         | Mục đích                                                    
+| Stt  | Công cụ         | Mục đích                                                    
 |:----:|:----------------|:----------------------------------------------------------------|
 | 1    | FastQC          | Kiểm tra chất lượng  reads                                      |
 | 2    | MultiQC         | Tổng hợp báo cáo                                                |
@@ -66,15 +66,15 @@ Thay thế `project/`, `RawRead/`, `sample/` bằng tên thực của dự án v
 
 ## V. Mô tả chi tiết quy trình xử lý
 
-### Bước 1: Kiểm tra chất lượng dữ liệu thô (FastQC, MultiQC)
+### 5.1. Kiểm tra chất lượng dữ liệu thô (FastQC, MultiQC)
 
-- **Công cụ:** [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/) kiểm tra chất lượng reads (phân phối điểm chất lượng theo base, GC content, duplicated reads, adapter…); [MultiQC](https://github.com/ewels/MultiQC) tổng hợp kết quả của nhiều báo cáo.
-- **Lệnh mẫu:** 
+- [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/) FastQC kiểm tra chất lượng reads (phân phối điểm chất lượng theo base, GC content, duplicated reads, adapter…); MultiQC tổng hợp kết quả báo cáo.
+  
   ```bash
-  fastqc RawRead/*.fastq.gz -o QC/FastQC_raw -t 8
-  multiqc QC/FastQC_raw -o QC/MultiQC_raw
+  Fastqc <path/to/input.fastq.gz> -o <path/to/output_dir> -t 8
+  multiqc <multiqc <path_to_fastqc_results> -o <path_to_multiqc_report>
   ```
-  (Thay `RawRead/*.fastq.gz` bằng đường dẫn thực tới file FASTQ thô. `-t` là số luồng CPU.)
+  (Thay `<path/to/input.fastq.gz>` bằng đường dẫn thực tới file FASTQ thô. `-t` là số luồng CPU.)
 - **Giải thích:** FastQC tạo báo cáo HTML/ZIP riêng cho mỗi file input. MultiQC quét thư mục kết quả FastQC và sinh một báo cáo tổng hợp duy nhất, giúp so sánh đồng thời nhiều mẫu hoặc nhiều luồng phân tích.
 - **Đầu ra:** Các file `fastqc.zip` và `fastqc.html` trong `QC/FastQC_raw/`, và file `multiqc_report.html` trong `QC/MultiQC_raw/`. Kiểm tra các cảnh báo (warnings) như adapter còn sót, base chất lượng thấp, GC bất thường...
 

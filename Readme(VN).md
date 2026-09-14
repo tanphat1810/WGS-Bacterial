@@ -151,45 +151,48 @@ Công cụ có thể chạy cả ở dạng Single-End và Pair-End. Single end 
 Sử dụng FastQC/MultiQC như ở Bước 1, và SeqKit để thống kê reads.
 
 ```bash
-seqkit stats [Đường dẫn file đầu vào R1 đã lọc] [Đường dẫn file đầu vào R2 đã lọc] -o [Đường dẫn file ra dạng .txt]
+seqkit stats <path/to/inputR1.fastq> <path/to/inputR2.fastq> -o <path/to/input.txt>
 ```
 
 <div align="justify">
-FastQC và MultiQC kiểm tra dữ liệu sạch để chắc rằng chất lượng đọc đã được cải thiện (ít lỗi, ít adapter hơn). Tham số stats trong Seqkit tính số lượng reads, tổng ký tự và độ dài ngắn/dài nhất, kiểm tra có read bị ngắn bất thường. Nếu thấy vấn đề (ví dụ quá ít reads, phân phối chiều dài lạ), cần điều chỉnh tham số fastp hoặc kiểm tra lỗi kỹ hơn.
+FastQC và MultiQC kiểm tra dữ liệu sạch để chắc rằng chất lượng đọc đã được cải thiện (ít lỗi, ít adapter hơn). Đầu vào của Seqkit sẽ lần lượt là 2 file fastq R1 và R2 đã được lọc. Tham số stats trong Seqkit tính số lượng reads, tổng ký tự và độ dài ngắn/dài nhất, kiểm tra có read bị ngắn bất thường. Nếu thấy vấn đề (ví dụ quá ít reads, phân phối chiều dài lạ), cần điều chỉnh tham số fastp hoặc kiểm tra lỗi kỹ hơn.
 </div>
 
+### 5.4. Lắp ráp de novo (SPAdes)
 
-### Bước 4: Lắp ráp de novo (SPAdes)
-
-- **Công cụ:** [SPAdes](https://cab.spbu.ru/software/spades/) – bộ lắp ráp genome thế hệ mới.
-- **Lệnh mẫu:** 
+- [SPAdes](https://cab.spbu.ru/software/spades/) – bộ lắp ráp genome
+  
   ```bash
   spades.py \
-    --isolate \
-    -1 sample/sample_R1.clean.fastq \
-    -2 sample/sample_R2.clean.fastq \
-    -o sample/spades_output \
-    -t 8 -m 16
+  --isolate \
+  -1 <path/to/inputR1.fastq> \
+  -2 <path/to/inputR2.fastq> \
+  -o <path/to/output_dir> \
+  -t 8 -m 16
   ```
-- **Giải thích:** Tham số `--isolate` cho SPAdes biết đây là dữ liệu bộ gen vi khuẩn thông thường. Các tham số `-t` (số luồng) và `-m` (GB RAM) được điều chỉnh tùy phần cứng. SPAdes đọc input và tạo ra nhiều contigs. Kết quả lưu trong thư mục `sample/spades_output`, bao gồm `contigs.fasta` (các contig ghép được) và thường có `scaffolds.fasta` (nếu SPAdes có thể ghép thêm).
-- **Đầu ra:** File `contigs.fasta` (các contig lắp ráp được), file `scaffolds.fasta`, file đồ thị lắp ráp (`assembly_graph.fastg`) và các log. Nếu SPAdes không hoàn thành (lỗi phân mảnh quá nhiều, lỗi tĩnh bộ nhớ...), cần xem lại dữ liệu đầu vào hoặc thử các công cụ khác (như Unicycler).
 
-### Bước 5: Đánh giá chất lượng lắp ráp (QUAST)
+<div align="justify">
+Tham số --isolate cho SPAdes biết đây là dữ liệu bộ gen vi khuẩn thông thường. Các tham số -t (số luồng) và -m (GB RAM) được điều chỉnh tùy phần cứng. SPAdes đọc input và tạo ra nhiều contigs. Kết quả lưu trong thư mục đầu ra chỉ định, bao gồm contigs.fasta (các contig ghép được) và thường có scaffolds.fasta (nếu SPAdes có thể ghép thêm).
+</div>
 
-- **Công cụ:** [QUAST](http://quast.sourceforge.net/) – công cụ đánh giá chất lượng assembly.
-- **Lệnh mẫu:** 
+### 5.5. Đánh giá chất lượng lắp ráp (QUAST)
+
+- [QUAST](http://quast.sourceforge.net/) – công cụ đánh giá chất lượng assembly.
+
   ```bash
   quast.py sample/spades_output/contigs.fasta \
     -o sample/quast_spades -t 8
   ```
-  (Nếu có genome tham chiếu, thêm `-r ref_genome.fasta` để tính thêm các chỉ số so với tham chiếu.)
-- **Giải thích:** QUAST tính các chỉ số thống kê: tổng kích thước assembly, số contig, N50, độ lệch so với tham chiếu nếu có, GC%, số misassemblies... QUAST cho phép đánh giá xem assembly có đủ tốt hay không. QUAST làm việc được cả khi không có file tham chiếu.
-- **Đầu ra:** Thư mục `sample/quast_spades/` chứa báo cáo (HTML, TSV, PDF) với các số liệu. Kiểm tra xem tổng độ dài có hợp lý, N50 cao, số contig tối ưu, không nhiều misassembly.
+<div align="justify">
+  (Nếu có genome tham chiếu, thêm -r ref_genome.fasta để tính thêm các chỉ số so với tham chiếu).
   
-### Bước 6: Tìm gene rRNA (Barrnap)
+QUAST tính các chỉ số thống kê: tổng kích thước assembly, số contig, N50, độ lệch so với tham chiếu nếu có, GC%, số misassemblies... QUAST cho phép đánh giá xem assembly có đủ tốt hay không. QUAST làm việc được cả khi không có file tham chiếu.
+</div>
+  
+### 5.6. Tìm gene rRNA (Barrnap)
 
-- **Công cụ:** [Barrnap](https://github.com/tseemann/barrnap) – công cụ tìm các gene RNA (rRNA, tRNA, ...).
-- **Lệnh mẫu:** 
+- [Barrnap](https://github.com/tseemann/barrnap) – công cụ tìm các gene RNA (rRNA, tRNA, ...).
+
   ```bash
   barrnap --kingdom bac sample/spades_output/contigs.fasta > sample/rrna.gff
   ```

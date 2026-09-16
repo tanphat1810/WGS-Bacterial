@@ -172,7 +172,7 @@ FastQC và MultiQC kiểm tra dữ liệu sạch để chắc rằng chất lư�
   ```
 
 <div align="justify">
-Tham số --isolate cho SPAdes biết đây là dữ liệu bộ gen vi khuẩn thông thường. Các tham số -t (số luồng) và -m (GB RAM) được điều chỉnh tùy phần cứng. SPAdes đọc input và tạo ra nhiều contigs. Kết quả lưu trong thư mục đầu ra chỉ định, bao gồm contigs.fasta (các contig ghép được) và thường có scaffolds.fasta (nếu SPAdes có thể ghép thêm).
+Đầu vào của SPAdes sẽ lần lượt là 2 file fastq R1 và R2 đã được lọc. Tham số --isolate cho SPAdes biết đây là dữ liệu bộ gen vi khuẩn thông thường. Các tham số -t (số luồng) và -m (GB RAM) được điều chỉnh tùy phần cứng. SPAdes đọc input và tạo ra nhiều contigs. Kết quả lưu trong thư mục đầu ra chỉ định, bao gồm contigs.fasta (các contig ghép được) và thường có scaffolds.fasta (nếu SPAdes có thể ghép thêm).
 </div>
 
 ### 5.5. Đánh giá chất lượng lắp ráp (QUAST)
@@ -180,13 +180,13 @@ Tham số --isolate cho SPAdes biết đây là dữ liệu bộ gen vi khuẩn 
 - [QUAST](http://quast.sourceforge.net/) – công cụ đánh giá chất lượng assembly.
 
   ```bash
-  quast.py sample/spades_output/contigs.fasta \
-    -o sample/quast_spades -t 8
+  quast.py <path/to/input.fasta> \
+    -o <path/to/output_dir> -t 8
   ```
 <div align="justify">
-  (Nếu có genome tham chiếu, thêm -r ref_genome.fasta để tính thêm các chỉ số so với tham chiếu).
+(Nếu có genome tham chiếu, thêm -r ref_genome.fasta để tính thêm các chỉ số so với tham chiếu).
   
-QUAST tính các chỉ số thống kê: tổng kích thước assembly, số contig, N50, độ lệch so với tham chiếu nếu có, GC%, số misassemblies... QUAST cho phép đánh giá xem assembly có đủ tốt hay không. QUAST làm việc được cả khi không có file tham chiếu.
+QUAST nhận đầu vào là file fasta đầu ra của SPAdes và tính các chỉ số thống kê: tổng kích thước assembly, số contig, N50, độ lệch so với tham chiếu nếu có, GC%, số misassemblies... QUAST cho phép đánh giá xem assembly có đủ tốt hay không. QUAST làm việc được cả khi không có file tham chiếu.
 </div>
   
 ### 5.6. Tìm gene rRNA (Barrnap)
@@ -194,49 +194,52 @@ QUAST tính các chỉ số thống kê: tổng kích thước assembly, số co
 - [Barrnap](https://github.com/tseemann/barrnap) – công cụ tìm các gene RNA (rRNA, tRNA, ...).
 
   ```bash
-  barrnap --kingdom bac sample/spades_output/contigs.fasta > sample/rrna.gff
+  barrnap --kingdom bac <path/to/input.fasta> > <path/to/output.gff>
   ```
-- **Giải thích:** Barrnap sử dụng các mô hình HMM để xác định vị trí gene rRNA (5S, 16S, 23S) trong bộ gen vi khuẩn. Kết quả được ghi vào file GFF3 (`rrna.gff`). Mỗi dòng GFF sẽ chứa loại `rRNA` và tên (`Name=16S_rRNA` chẳng hạn) và vị trí bắt đầu/kết thúc.
-- **Đầu ra:** File `rrna.gff` trong thư mục mẫu. Dùng `grep "16S"` để kiểm tra xem có phát hiện 16S rRNA hay không.
 
-### Bước 7: Trích xuất trình tự 16S rRNA (grep + bedtools)
+<div align="justify">
+Barrnap sử dụng các mô hình HMM để xác định vị trí gene rRNA (5S, 16S, 23S) trong bộ gen vi khuẩn. --kingdom bac Chỉ định kingdom của sinh vật mục tiêu để công cụ áp dụng mô hình huấn luyện phù hợp. Trong trường hợp này, bac nghĩa là Bacteria (Vi khuẩn). Lệnh này sẽ tìm kiếm các đoạn rRNA 5S, 16S và 23S của vi khuẩn.(Các tùy chọn khác có thể dùng là arc cho Archaea, euk cho Eukaryota, và mito cho Ty thể động vật). Kết quả được ghi vào file GFF3. Mỗi dòng GFF sẽ chứa loại rRNA, tên và vị trí bắt đầu/kết thúc.
+</div>
 
-- **Công cụ:** [grep](https://en.wikipedia.org/wiki/Grep) (lệnh hệ thống) và [BEDTools](https://bedtools.readthedocs.io/en/latest/content/tools/getfasta.html).
-- **Lệnh mẫu:** 
+### 5.7. Trích xuất trình tự 16S rRNA (grep + bedtools)
+
+- [grep](https://en.wikipedia.org/wiki/Grep) (lệnh hệ thống) và [BEDTools](https://bedtools.readthedocs.io/en/latest/content/tools/getfasta.html).
+
   ```bash
-  grep "16S_rRNA" sample/rrna.gff > sample/16S.gff
-  bedtools getfasta -fi sample/spades_output/contigs.fasta \
-    -bed sample/16S.gff -s -name \
-    > sample/16S.fasta
+  grep "16S_rRNA" <path/to/input.gff> > <path/to/output16S.gff>
+  bedtools getfasta -fi <path/to/input.fasta> \
+                    -bed <path/to/input16S.gff> -s -name \
+                    > <path/to/output16S.fasta>
   ```
-- **Giải thích:** Dòng `grep` lọc ra các dòng GFF của Barrnap chứa chuỗi `16S_rRNA`. Sau đó, `bedtools getfasta` lấy các đoạn trình tự tương ứng từ file FASTA của assembly theo tọa độ trong GFF. Tùy chọn `-s` đảm bảo giữ chiều mạch (nếu gene nằm trên mạch âm thì sẽ lấy bổ sung bội); `-name` dùng trường tên trong GFF làm tiêu đề FASTA. Kết quả thu được là file FASTA của các gene 16S rRNA (nếu có).
-- **Đầu ra:** File `16S.fasta` chứa trình tự 16S rRNA (đa phần dài ~1500 bp cho vi khuẩn). Nếu không tìm thấy 16S, có thể do assembly phân mảnh hoặc gene bị cắt ngắn; trong trường hợp này, có thể kiểm tra ở assembly thay thế (Unicycler) hoặc tìm kiếm khác.
 
-### Bước 8: Thống kê 16S rRNA (SeqKit stats)
+<div align="justify">
+Ở lệnh grep "16S_rRNA" là từ khóa cần tìm kiếm. Lệnh sẽ quét qua toàn bộ file và chỉ giữ lại các dòng có chứa chính xác cụm từ này. File đầu vào (chứa tất cả các loại rRNA như 5S, 16S, 23S). File đầu ra mới, lúc này chỉ còn chứa tọa độ vị trí của các gen 16S rRNA. Sau đó, lệnh bedtools getfasta lấy đầu vào là file fasta chứa toàn bộ trình tự các đoạn contigs (được tạo ra từ phần mềm lắp ráp SPAdes). -bed sample/16S.gff chỉ định file chứa tọa độ vùng cần cắt (Lấy từ file đầu ra ở mục 5.6). Lệnh sẽ dựa vào đây để biết gen 16S nằm ở contig nào, từ nucleotide thứ bao nhiêu đến thứ bao nhiêu. -s viết tắt của strand-specific giúp bedtools tự động lấy mạch bổ sung ngược (reverse complement) nếu gen 16S đó nằm trên mạch trừ (-) của DNA. -name sử dụng chính tên của gen (hoặc ID) có trong file GFF để đặt tên cho các header của chuỗi fasta đầu ra, giúp dễ dàng nhận biết đoạn trình tự đó thuộc về gen nào thay vì chỉ hiển thị tọa độ số chung chung.
+</div>
 
-- **Công cụ:** SeqKit.
-- **Lệnh mẫu:** 
+### 5.8. Thống kê 16S rRNA (SeqKit stats)
+
   ```bash
-  seqkit stats sample/16S.fasta
+  seqkit stats <path/to/input16s.fasta>
   ```
-- **Giải thích:** Công cụ này in ra số reads (số gene 16S tìm được), tổng chiều dài, độ dài trung bình, v.v. Thường kỳ vọng 1–2 gene 16S đầy đủ (~1500 bp) nếu có ít nhất một operon 16S-23S-tRNAs.
-- **Đầu ra:** Bảng thống kê in ra terminal, cho biết đã tìm được bao nhiêu gene 16S và độ dài của chúng. Dùng để kiểm tra xem Barrnap đã tìm được gene có đủ dài hay chỉ partial (nhỏ hơn ~1400 bp).
+Công cụ này in ra số reads (số gene 16S tìm được), tổng chiều dài, độ dài trung bình, v.v. Thường kỳ vọng 1–2 gene 16S đầy đủ (~1500 bp) nếu có ít nhất một operon 16S-23S-tRNAs.
 
-### Bước 9: So sánh toàn bộ genome (FastANI)
+### 5.9. So sánh toàn bộ genome (FastANI)
 
-- **Công cụ:** [FastANI](https://github.com/ParBLiSS/FastANI) – tính toán nhanh chỉ số Average Nucleotide Identity (ANI).
-- **Lệnh mẫu:** 
+- [FastANI](https://github.com/ParBLiSS/FastANI) – tính toán chỉ số Average Nucleotide Identity (ANI).
+
   ```bash
-  fastANI -q sample/spades_output/contigs.fasta \
-    -r ref/Bacillus_velezensis_FZB42.fasta \
-    -o sample/ani_results.txt
+  fastANI -q <path/to/input.fasta> \
+          -r <path/to/inputref.fasta> \
+          -o <path/to/output.txt>
   ```
-- **Giải thích:** FastANI đo lường độ tương đồng nucleotide trung bình giữa hai genome. Giá trị ANI trên 95% thường cho biết hai genome cùng loài. Công cụ này không cần căn chỉnh dọc chuỗi đầy đủ mà dùng phương pháp MinHash, chạy rất nhanh. Kết quả (`ani_results.txt`) có dạng tab: `query_genome  reference_genome  ANI%  bidirectional_mappings  total_fragments`.
-- **Đầu ra:** File `ani_results.txt`. Kiểm tra giá trị ANI và tỉ lệ mapping để xác nhận loài tham chiếu phù hợp (nên trên ~90–95% cho cùng loài).
+
+<div align="justify">
+FastANI nhận đầu vào file chứa contig và bộ genome tham chiếu để đo lường độ tương đồng nucleotide trung bình giữa hai genome. Giá trị ANI trên 95% thường cho biết hai genome cùng loài. Công cụ này không cần căn chỉnh dọc chuỗi đầy đủ mà dùng phương pháp MinHash, chạy rất nhanh. Kết quả có dạng tab: query_genome  reference_genome  ANI%  bidirectional_mappings  total_fragments.
+</div>
 
 ### Bước 10: Lắp ráp thay thế (Unicycler) *[tùy chọn]*
 
-- **Công cụ:** [Unicycler](https://github.com/rrwick/Unicycler) – pipeline lắp ráp tập trung cho vi khuẩn (hỗ trợ tập short-reads và hybrid long-reads).
+- [Unicycler](https://github.com/rrwick/Unicycler) – pipeline lắp ráp tập trung cho vi khuẩn (hỗ trợ tập short-reads và hybrid long-reads).
 - **Khi thực hiện:** Nếu kết quả lắp ráp SPAdes ở Bước 7 không đạt yêu cầu (quá nhiều contigs, N50 thấp, hoặc nhiều lỗ hổng), có thể chạy Unicycler như một phương án thay thế với cùng dữ liệu short reads.
 - **Lệnh mẫu:** 
   ```bash

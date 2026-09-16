@@ -237,6 +237,11 @@ Công cụ này in ra số reads (số gene 16S tìm được), tổng chiều d
 FastANI nhận đầu vào file chứa contig và bộ genome tham chiếu để đo lường độ tương đồng nucleotide trung bình giữa hai genome. Giá trị ANI trên 95% thường cho biết hai genome cùng loài. Công cụ này không cần căn chỉnh dọc chuỗi đầy đủ mà dùng phương pháp MinHash, chạy rất nhanh. Kết quả có dạng tab: query_genome  reference_genome  ANI%  bidirectional_mappings  total_fragments.
 </div>
 
+### 5.10. Xây dựng cây di truyền (MEGA12)
+<div align="justify">
+Công cụ được xử dụng là MEGA12 ở dạng desktop lấy đầu vào là file fasta 16s được lắp ráp và các fasta 16s của các loài cùng chi hoặc cùng họ với loài cần định danh, tất cả fasta đã được xếp giống cột và chung 1 file fasta. Đầu ra là cây di truyền hoàn chỉnh.
+</div>
+
 ### Bước 10: Lắp ráp thay thế (Unicycler) *[tùy chọn]*
 
 - [Unicycler](https://github.com/rrwick/Unicycler) – pipeline lắp ráp tập trung cho vi khuẩn (hỗ trợ tập short-reads và hybrid long-reads).

@@ -242,6 +242,8 @@ FastANI nhận đầu vào file chứa contig và bộ genome tham chiếu để
 Công cụ được xử dụng là MEGA12 ở dạng desktop lấy đầu vào là file fasta 16s được lắp ráp và các fasta 16s của các loài cùng chi hoặc cùng họ với loài cần định danh, tất cả fasta đã được xếp giống cột và chung 1 file fasta. Đầu ra là cây di truyền hoàn chỉnh.
 </div>
 
+### Chú giải genome (Bakta)
+
 ### Bước 10: Lắp ráp thay thế (Unicycler) *[tùy chọn]*
 
 - [Unicycler](https://github.com/rrwick/Unicycler) – pipeline lắp ráp tập trung cho vi khuẩn (hỗ trợ tập short-reads và hybrid long-reads).
@@ -306,7 +308,7 @@ Công cụ được xử dụng là MEGA12 ở dạng desktop lấy đầu vào 
     --threads 8
   ```
   (Thay `final_assembly.fasta` bằng file contigs hoặc scaffold cuối cùng bạn chọn; `SampleID` là tiền tố đẳng dạng cho các file đầu ra.)
-- **Giải thích:** Bakta thực hiện chú giải toàn diện: tìm CDS, gene RNA (rRNA, tRNA), CRISPR, chức năng protein, liên kết thư viện DBxref,… Kết quả đầy đủ trong nhiều định dạng (GFF3, GenBank, FASTA protein/nt, bảng TSV báo cáo). Bakta thiết kế cho vi khuẩn và sử dụng phương pháp tìm kiếm không căn chỉnh nhanh, thường hoàn tất một genome ~5 Mb trong vài phút. Nên kiểm tra log của Bakta để biết các bản ghi (annotation) và phiên bản cơ sở dữ liệu đã dùng.
+- Bakta thực hiện chú giải toàn diện: tìm CDS, gene RNA (rRNA, tRNA), CRISPR, chức năng protein, liên kết thư viện DBxref,… Kết quả đầy đủ trong nhiều định dạng (GFF3, GenBank, FASTA protein/nt, bảng TSV báo cáo). Bakta thiết kế cho vi khuẩn và sử dụng phương pháp tìm kiếm không căn chỉnh nhanh, thường hoàn tất một genome ~5 Mb trong vài phút. Nên kiểm tra log của Bakta để biết các bản ghi (annotation) và phiên bản cơ sở dữ liệu đã dùng.
 - **Đầu ra:** Thư mục `sample/bakta_output/` chứa nhiều file:
   - `SampleID.gff` (chú giải GFF3 chuẩn GenBank),
   - `SampleID.gbk` (GenBank), `SampleID.embl` (EMBL),

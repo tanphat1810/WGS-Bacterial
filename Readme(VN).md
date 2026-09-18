@@ -340,4 +340,5 @@ Lưu ý: Trình tự và cách chạy có thể điều chỉnh tùy theo dữ l
 | 12   | QUAST    | Evaluate Unicycler assembly                  | Unicycler `assembly.fasta` | Assembly reports                    | Optional             | Same as Step 8                |
 | 13   | RagTag   | Reference-guided scaffolding of contigs      | Assembly FASTA, ref FASTA  | `ragtag.scaffold.fasta`             | Conditional (if needed) | `ragtag.py scaffold ref.fa contigs.fa` |
 | 13   | QUAST + SeqKit | Evaluate scaffolded assembly             | `ragtag.scaffold.fasta`   | Reports; contig stats (SeqKit)      | Conditional           | Same as Step 8 + count `N`    |
+
 This table summarizes each step: **Tool**, **Purpose**, **Inputs/Outputs**, **When to run** (mandatory or conditional), and **Key parameters**. (Steps like Unicycler and RagTag are optional alternatives run only if needed. FastANI requires a reference genome.) The final step is always running Bakta on the chosen assembly to complete annotation.

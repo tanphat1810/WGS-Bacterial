@@ -177,7 +177,7 @@ FastQC và MultiQC kiểm tra dữ liệu sạch để chắc rằng chất lư�
   ```
 
 <div align="justify">
-Đầu vào của SPAdes sẽ lần lượt là 2 file fastq R1 và R2 đã được lọc. Tham số --isolate cho SPAdes biết đây là dữ liệu bộ gen vi khuẩn thông thường. Các tham số -t (số luồng) và -m (GB RAM) được điều chỉnh tùy phần cứng. SPAdes đọc input và tạo ra nhiều contigs. Kết quả lưu trong thư mục đầu ra chỉ định, bao gồm contigs.fasta (các contig ghép được) và thường có scaffolds.fasta (nếu SPAdes có thể ghép thêm).
+Đầu vào của SPAdes sẽ lần lượt là 2 file fastq R1 và R2 đã được lọc. Tham số **--isolate** cho **SPAdes** biết đây là dữ liệu bộ gen vi khuẩn thông thường. Các tham số **-t** (số luồng) và **-m** (GB RAM) được điều chỉnh tùy phần cứng. SPAdes đọc input và tạo ra nhiều contigs. Kết quả lưu trong thư mục đầu ra chỉ định, bao gồm **contigs.fasta** (các contig ghép được) và thường có **scaffolds.fasta** (nếu SPAdes có thể ghép thêm).
 </div>
 
 ### 5.5. Đánh giá chất lượng lắp ráp (QUAST)
@@ -296,7 +296,7 @@ ragtag.py scaffold <path/to/input_ref.fasta> \
 ```
 
 <div align="justify">
-- RagTag nhận đầu vào gồm file fasta của genome tham chiếu và thư mục chứa các contig đầu ra của SPAdes hoặc Unicycler. RagTag sẽ căn cứ vào genome tham chiếu để sắp xếp, định hướng và nối các contigs. Kết quả là fasta và file AGP (với thông tin gap). Tùy chọn -t số luồng. Thư mục đầu ra chứa fasta, file ragtag.agp (mô tả vị trí các gap), và log. Đây là bản assembly cuối cùng (nếu được chấp nhận). Sau khi có kết quả, kiểm tra lại chất lượng bằng QUAST.
+RagTag nhận đầu vào gồm file fasta của genome tham chiếu và thư mục chứa các contig đầu ra của SPAdes hoặc Unicycler. RagTag sẽ căn cứ vào genome tham chiếu để sắp xếp, định hướng và nối các contigs. Kết quả là fasta và file AGP (với thông tin gap). Tùy chọn -t số luồng. Thư mục đầu ra chứa fasta, file ragtag.agp (mô tả vị trí các gap), và log. Đây là bản assembly cuối cùng (nếu được chấp nhận). Sau khi có kết quả, kiểm tra lại chất lượng bằng QUAST.
   
 - Chú ý: RagTag không khắc phục lỗi hoàn toàn, nhưng sắp xếp contigs tốt hơn nếu có reference phù hợp. Kiểm tra kỹ scaffold mới để tránh misassembly do reference không quá gần.
 </div>

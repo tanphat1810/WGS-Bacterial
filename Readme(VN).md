@@ -229,7 +229,7 @@ Công cụ này in ra số reads (số gene 16S tìm được), tổng chiều d
 
   ```bash
   fastANI -q <path/to/input.fasta> \
-          -r <path/to/inputref.fasta> \
+          -r <path/to/input_ref.fasta> \
           -o <path/to/output.txt>
   ```
 
@@ -242,115 +242,102 @@ FastANI nhận đầu vào file chứa contig và bộ genome tham chiếu để
 Công cụ được xử dụng là MEGA12 ở dạng desktop lấy đầu vào là file fasta 16s được lắp ráp và các fasta 16s của các loài cùng chi hoặc cùng họ với loài cần định danh, tất cả fasta đã được xếp giống cột và chung 1 file fasta. Đầu ra là cây di truyền hoàn chỉnh.
 </div>
 
-### Chú giải genome (Bakta)
+### 5.11. Chú giải genome (Bakta)
 
-### Bước 10: Lắp ráp thay thế (Unicycler) *[tùy chọn]*
+```bash
+bakta \
+  --input <path/to/input.fasta> \
+  --output <path/to/output_dir> \
+  --prefix SampleID \
+  --threads 8
+```
 
-- [Unicycler](https://github.com/rrwick/Unicycler) – pipeline lắp ráp tập trung cho vi khuẩn (hỗ trợ tập short-reads và hybrid long-reads).
-- **Khi thực hiện:** Nếu kết quả lắp ráp SPAdes ở Bước 7 không đạt yêu cầu (quá nhiều contigs, N50 thấp, hoặc nhiều lỗ hổng), có thể chạy Unicycler như một phương án thay thế với cùng dữ liệu short reads.
-- **Lệnh mẫu:** 
-  ```bash
-  unicycler -1 sample_R1.clean.fastq \
-            -2 sample_R2.clean.fastq \
-            -o sample/unicycler_out \
-            -t 8
-  ```
-- **Giải thích:** Unicycler sẽ tự động sử dụng SPAdes ở chế độ short-read rồi xử lý thêm để tối ưu lắp ráp. Tùy chọn `-t` số luồng CPU. (Nếu có long reads, có thể thêm tham số `-l longreads.fastq` để chạy hybrid, nhưng trong quy trình này giả định chỉ có short reads.)
-- **Đầu ra:** Thư mục `sample/unicycler_out/` bao gồm file `assembly.fasta` (các contig/scaffold cuối cùng của Unicycler), cùng file log. Tiêu đề mặc định có thể là `contigs.fasta` hoặc `assembly.fasta` tùy phiên bản. Nếu Unicycler thành công, nên kiểm tra lại chất lượng tương tự như với SPAdes.
-
-### Bước 11: Đánh giá assembly Unicycler (QUAST)
-
-- **Công cụ:** QUAST (tương tự Bước 5).
-- **Lệnh mẫu:** 
-  ```bash
-  quast.py sample/unicycler_out/assembly.fasta \
-    -o sample/quast_unicycler -t 8
-  ```
-- **Giải thích:** Tương tự đánh giá assembly SPAdes. So sánh các chỉ số (số contig, N50, lỗi) giữa SPAdes và Unicycler. Lựa chọn assembly tốt hơn làm base cho bước kế tiếp. Nếu Unicycler tốt hơn (few contigs, N50 cao hơn, ít lỗi), chuyển sang bước chú giải với assembly này. Nếu không, vẫn có thể thử RagTag với assembly cũ.
-
-### Bước 12: Scaffold theo tham chiếu (RagTag) *[tùy chọn]*
-
-- **Công cụ:** [RagTag](https://github.com/malonge/RagTag) – sắp xếp và nối contig theo genome tham chiếu.
-- **Khi thực hiện:** Nếu assembly (SPAdes hoặc Unicycler) vẫn còn phân mảnh và bạn có một genome tham chiếu cùng loài hoặc rất gần, có thể dùng RagTag để ghép contigs dựa trên homology.
-- **Lệnh mẫu:** 
-  ```bash
-  ragtag.py scaffold ref/Bacillus_velezensis_FZB42.fasta \
-                   sample/spades_output/contigs.fasta \
-                   -o sample/ragtag_out -t 8
-  ```
-- **Giải thích:** RagTag sẽ căn cứ vào genome tham chiếu để sắp xếp, định hướng và nối các contigs của bạn. Kết quả là `ragtag.scaffold.fasta` và file AGP (với thông tin gap). Tùy chọn `-t` số luồng. (Nếu đã dùng Unicycler, đổi `contigs.fasta` thành `unicycler_out/assembly.fasta`.) Nếu ANI ở Bước 9 quá thấp (<90%), tránh dùng RagTag để không ép lắp ráp sai.
-- **Đầu ra:** Thư mục `sample/ragtag_out/` chứa `ragtag.scaffold.fasta`, file `ragtag.agp` (mô tả vị trí các gap), và log. Đây là bản assembly cuối cùng (nếu được chấp nhận).
-- **Chú ý:** RagTag không khắc phục lỗi từ chối hoàn toàn, nhưng sắp xếp contigs tốt hơn nếu có reference phù hợp. Kiểm tra kỹ scaffold mới để tránh misassembly do reference không quá gần.
-
-### Bước 13: Đánh giá scaffold (QUAST, SeqKit)
-
-- **Công cụ:** QUAST, SeqKit.
-- **Lệnh mẫu:** 
-  ```bash
-  quast.py sample/ragtag_out/ragtag.scaffold.fasta \
-    -r ref/Bacillus_velezensis_FZB42.fasta \
-    -o sample/quast_ragtag -t 8
-  seqkit fx2tab -n -l -g sample/ragtag_out/ragtag.scaffold.fasta
-  grep -o "N" sample/ragtag_out/ragtag.scaffold.fasta | wc -l
-  ```
-- **Giải thích:** Đánh giá chất lượng bản scaffold tương tự. Kiểm tra N50, L50, số chuỗi dài. Dùng `seqkit fx2tab` để liệt kê tên và độ dài mỗi contig (đối chiếu với contigs cũ). Đếm số ký tự `N` (thay thế gap) để biết đã tạo bao nhiêu khoảng trống (ký tự `N`) trong scaffold. So sánh với bản assembly chưa scaffold để chắc chắn cải thiện.
-- **Đầu ra:** Báo cáo QUAST (tương tự) trong `sample/quast_ragtag/`, bảng thống kê từ `seqkit`, và giá trị `N` từ lệnh `grep`. Chọn bản assembly (contigs hoặc scaffold) có chất lượng cao hơn để bước chú giải cuối cùng.
-
-### Bước 14: Chú giải genome (Bakta)
-
-- **Công cụ:** [Bakta](https://bakta.readthedocs.io/) – chú giải bộ gen vi khuẩn.
-- **Lệnh mẫu:** 
-  ```bash
-  bakta \
-    --input sample/final_assembly.fasta \
-    --output sample/bakta_output \
-    --prefix SampleID \
-    --threads 8
-  ```
-  (Thay `final_assembly.fasta` bằng file contigs hoặc scaffold cuối cùng bạn chọn; `SampleID` là tiền tố đẳng dạng cho các file đầu ra.)
-- Bakta thực hiện chú giải toàn diện: tìm CDS, gene RNA (rRNA, tRNA), CRISPR, chức năng protein, liên kết thư viện DBxref,… Kết quả đầy đủ trong nhiều định dạng (GFF3, GenBank, FASTA protein/nt, bảng TSV báo cáo). Bakta thiết kế cho vi khuẩn và sử dụng phương pháp tìm kiếm không căn chỉnh nhanh, thường hoàn tất một genome ~5 Mb trong vài phút. Nên kiểm tra log của Bakta để biết các bản ghi (annotation) và phiên bản cơ sở dữ liệu đã dùng.
-- **Đầu ra:** Thư mục `sample/bakta_output/` chứa nhiều file:
+<div align="justify">
+Bakta thực hiện chú giải: tìm CDS, gene RNA (rRNA, tRNA), CRISPR, chức năng protein, liên kết thư viện DBxref,… --prefix SampleID đặt tên tiền tố cho các file kết quả xuất ra. Ví dụ: Các file tạo ra sẽ có tên là SampleID.gff3, SampleID.gbk,... thay cho tên mặc định. Có thể đổi SampleID thành mã mẫu thực tế. Kết quả đầy đủ trong nhiều định dạng (GFF3, GenBank, FASTA protein/nt, bảng TSV báo cáo). Bakta thiết kế cho vi khuẩn và sử dụng phương pháp tìm kiếm không căn chỉnh nhanh, thường hoàn tất một genome ~5 Mb trong vài phút. Nên kiểm tra log của Bakta để biết các bản ghi (annotation) và phiên bản cơ sở dữ liệu đã dùng. 
+- Thư mục `đầu ra` chứa các file:
   - `SampleID.gff` (chú giải GFF3 chuẩn GenBank),
   - `SampleID.gbk` (GenBank), `SampleID.embl` (EMBL),
   - `SampleID.ffn` (nucleotides of CDS), `SampleID.faa` (proteins),
   - `SampleID.tsv` (tóm tắt chức năng), `SampleID.json`, v.v.
-- Sau bước này, quy trình kết thúc **thành công**. Kết quả chú giải có thể được dùng để nộp lên public database hoặc phân tích sau.
+</div>
+
+### 5.12. Lắp ráp thay thế (Unicycler) [tùy chọn]
+
+<div align="justify">
+Unicycler – pipeline lắp ráp tập trung cho vi khuẩn (hỗ trợ tập short-reads và hybrid long-reads). Nếu kết quả lắp ráp SPAdes ở 5.4 không đạt yêu cầu (quá nhiều contigs, N50 thấp, hoặc nhiều lỗ hổng), có thể chạy Unicycler như một phương án thay thế với cùng dữ liệu short reads.
+</div>
+
+```bash
+unicycler -1 <path/to/inputR1.fastq> \
+          -2 <path/to/inputR2.fastq> \
+          -o <path/to/output_dir> \
+          -t 8
+```
+
+<div align="justify">
+Unicycler lấy đầu vào tương tự SPAdes ở mục 5.4, đồng thời tự động sử dụng SPAdes ở chế độ short-read rồi xử lý thêm để tối ưu lắp ráp. Tham số -t số luồng CPU. (Nếu có long reads, có thể thêm tham số -l longreads.fastq để chạy hybrid, nhưng trong quy trình này giả định chỉ có short reads.). Thư mục đầu ra bao gồm file assembly.fasta cùng file log. Sau khi có kết quả từ Unicycler, kiểm tra lại chất lượng bằng QUAST.
+</div>
+
+### 5.13. Scaffold theo tham chiếu (RagTag) [tùy chọn]
+
+<div align="justify">
+RagTag sẽ căn cứ vào genome tham chiếu để sắp xếp, định hướng và nối các contigs. Kết quả là fasta và file AGP (với thông tin gap). Tùy chọn -t số luồng. Thư mục đầu ra chứa fasta, file ragtag.agp (mô tả vị trí các gap), và log. Đây là bản assembly cuối cùng (nếu được chấp nhận). Sau khi có kết quả, kiểm tra lại chất lượng bằng QUAST.
+</div>
+
+```bash
+ragtag.py scaffold <path/to/input_ref.fasta> \
+                   <path/to/input_dir> \
+                   -o <path/to/output_dir> -t 8
+```
+
+<div align="justify">
+- RagTag nhận đầu vào gồm file fasta của genome tham chiếu và thư mục chứa các contig đầu ra của SPAdes hoặc Unicycler. RagTag sẽ căn cứ vào genome tham chiếu để sắp xếp, định hướng và nối các contigs. Kết quả là fasta và file AGP (với thông tin gap). Tùy chọn -t số luồng. Thư mục đầu ra chứa fasta, file ragtag.agp (mô tả vị trí các gap), và log. Đây là bản assembly cuối cùng (nếu được chấp nhận). Sau khi có kết quả, kiểm tra lại chất lượng bằng QUAST.
+  
+- Chú ý: RagTag không khắc phục lỗi hoàn toàn, nhưng sắp xếp contigs tốt hơn nếu có reference phù hợp. Kiểm tra kỹ scaffold mới để tránh misassembly do reference không quá gần.
+</div>
 
 ## Tiêu chí hoàn thành và điều kiện thực hiện
 
-- **Bước cuối thành công:** Quy trình kết thúc khi Bakta hoàn tất chú giải genome của mẫu đã chọn (contigs hoặc scaffolds cuối cùng). Lấy kết quả từ thư mục `bakta_output/` làm output cuối.
-- **Kiểm tra assembly:** Sau mỗi assembly (SPAdes, Unicycler, RagTag), luôn đánh giá với QUAST. Nếu các chỉ số (ví dụ số contig quá nhiều, N50 thấp, tổng kích thước bất thường, misassemblies) không chấp nhận được, chuyển sang giải pháp thay thế.
-  - Nếu SPAdes đạt yêu cầu ngay: bỏ qua Unicycler/RagTag và tiếp tục.
-  - Nếu SPAdes kém: chạy Unicycler để so sánh (thường làm sớm vì Unicycler có thể cho assembly tốt hơn với short-reads).
-  - Nếu vẫn phân mảnh & có reference phù hợp: chạy RagTag.
-- **Tham chiếu (FastANI, RagTag):** Nếu FastANI (Bước 12) cho giá trị thấp (<90-95%), có thể genome không cùng loài – khi đó cần tìm reference khác hoặc thôi không dùng RagTag. Chỉ dùng RagTag nếu chắc chắn reference gần.
-- **16S rRNA:** Nếu Barrnap không tìm thấy 16S (vì assembly thiếu vùng rRNA), có thể thử ở assembly khác (Unicycler) hoặc kiểm tra why không lắp ráp được (16S thường lặp). Trường hợp không tìm thấy 16S ở cả hai assembly có thể do phân mảnh cao.
-- **Phân chia bước:** Trong bảng trên, bước nào đánh dấu “bắt buộc” luôn chạy; “có điều kiện” chỉ chạy nếu cần. Ví dụ Unicycler (Bước 13 trong bảng) chỉ thực hiện nếu SPAdes thất bại; RagTag (Bước 15-16) chỉ khi cần cải thiện assembly với tham chiếu.
+<div align="justify">
+Quy trình kết thúc khi Bakta hoàn tất chú giải genome của mẫu đã chọn (contigs hoặc scaffolds cuối cùng). Lấy kết quả từ thư mục đầu ra của Bakta làm output cuối.
+  
+Kiểm tra assembly: Sau mỗi assembly (SPAdes, Unicycler, RagTag), luôn đánh giá với QUAST. Nếu các chỉ số (ví dụ số contig quá nhiều, N50 thấp, tổng kích thước bất thường, misassemblies) không chấp nhận được, chuyển sang giải pháp thay thế.
 
-> **Lưu ý:** Trình tự và cách chạy có thể điều chỉnh tùy theo dữ liệu và mục tiêu. Ví dụ, có thể chạy Unicycler song song để so sánh, nhưng chỉ dùng kết quả tốt nhất. Luôn sao lưu dữ liệu quan trọng và kiểm tra kỹ báo cáo tại mỗi bước để đảm bảo quy trình diễn ra đúng. 
+Nếu SPAdes đạt yêu cầu có thể bỏ qua Unicycler/RagTag và tiếp tục.
+
+Nếu SPAdes kém: chạy Unicycler để so sánh (thường làm sớm vì Unicycler có thể cho assembly tốt hơn với short-reads).
+
+Nếu vẫn phân mảnh & có reference phù hợp: chạy RagTag.
+
+Tham chiếu (FastANI, RagTag): Nếu FastANI (Bước 12) cho giá trị thấp (<90-95%), có thể genome không cùng loài – khi đó cần tìm reference khác hoặc thôi không dùng RagTag. Chỉ dùng RagTag nếu chắc chắn reference gần.
+
+16S rRNA: Nếu Barrnap không tìm thấy 16S (vì assembly thiếu vùng rRNA), có thể thử ở assembly khác (Unicycler) hoặc kiểm tra why không lắp ráp được (16S thường lặp). Trường hợp không tìm thấy 16S ở cả hai assembly có thể do phân mảnh cao.
+
+Lưu ý: Trình tự và cách chạy có thể điều chỉnh tùy theo dữ liệu và mục tiêu. Ví dụ, có thể chạy Unicycler song song để so sánh, nhưng chỉ dùng kết quả tốt nhất. Luôn sao lưu dữ liệu quan trọng và kiểm tra kỹ báo cáo tại mỗi bước để đảm bảo quy trình diễn ra đúng.
+</div>
 
 ---
 
 ## Summary Table (English)
 
-| Step | Tool     | Purpose                                      | Inputs                    | Outputs                             | Mandatory/Optional    | Key parameters                |
-|------|----------|----------------------------------------------|---------------------------|-------------------------------------|-----------------------|-------------------------------|
-| 1    | FastQC   | Check raw read quality                       | Raw FASTQ files           | FastQC HTML/ZIP reports             | Mandatory             | `-t threads`                  |
-| 2    | MultiQC  | Aggregate FastQC results                     | Folder of FastQC results  | `multiqc_report.html`, `multiqc_data/` | Mandatory           | —                             |
-| 3    | fastp    | Trim adapters, filter low-quality reads      | Raw R1.fastq, R2.fastq     | Cleaned FASTQ files + HTML/JSON report | Mandatory         | `--detect_adapter_for_pe`, quality and length filters |
-| 4    | FastQC   | Check trimmed-read quality                   | Cleaned FASTQ files       | FastQC reports                      | Mandatory             | `-t threads`                  |
-| 5    | MultiQC  | Aggregate post-filter FastQC results         | Folder of FastQC results  | `multiqc_report.html`               | Mandatory             | —                             |
-| 6    | SeqKit   | Compute read statistics (count, length)      | Cleaned FASTQ files       | Stats table on stdout               | Mandatory             | —                             |
-| 7    | SPAdes   | De novo genome assembly                      | Cleaned R1.fastq, R2.fastq | `contigs.fasta` (assembly)          | Mandatory             | `--isolate`, `-t threads`, `-m memory` |
-| 8    | QUAST    | Evaluate assembly quality                    | `contigs.fasta` (+ ref)    | Assembly quality reports            | Mandatory             | `-t threads`, `-r ref.fasta` |
-| 9    | Barrnap  | Find rRNA genes (5S, 16S, 23S)               | `contigs.fasta`           | GFF3 with rRNA coordinates          | Mandatory             | `--kingdom bac`     |
-| 10   | grep + bedtools | Extract 16S rRNA sequences from GFF   | `rrna.gff`                 | `16S.fasta`                         | Optional (if 16S found) | `grep "16S_rRNA"`, `bedtools getfasta -s -name` |
-| 11   | SeqKit   | Stats on 16S sequences                      | `16S.fasta`               | Stats table on stdout               | Optional             | —                             |
-| 12   | FastANI  | Compute genome-wide ANI vs reference         | Assembly FASTA, ref FASTA  | ANI results (tab file)             | Conditional (if ref.) | `-q assembly -r reference -o output` |
-| 13   | Unicycler| Alternative assembly (short-read only)       | Cleaned R1.fastq, R2.fastq | `assembly.fasta` (Unicycler output) | Optional             | `-1 reads -2 reads -o out -t threads` |
-| 14   | QUAST    | Evaluate Unicycler assembly                  | Unicycler `assembly.fasta` | Assembly reports                    | Optional             | Same as Step 8                |
-| 15   | RagTag   | Reference-guided scaffolding of contigs      | Assembly FASTA, ref FASTA  | `ragtag.scaffold.fasta`             | Conditional (if needed) | `ragtag.py scaffold ref.fa contigs.fa` |
-| 16   | QUAST + SeqKit | Evaluate scaffolded assembly             | `ragtag.scaffold.fasta`   | Reports; contig stats (SeqKit)      | Conditional           | Same as Step 8 + count `N`    |
-| 17   | Bakta    | Annotate final genome (genes, proteins, etc.)| Final assembly FASTA       | GFF3, GenBank, FASTA, TSV, JSON      | Mandatory (final step) | `--input assembly.fa --output dir --prefix ID` |
-
+| Step | Tool     | Purpose                                      | Inputs                     | Outputs                                | Mandatory/Optional      | Key parameters                |
+|------|----------|----------------------------------------------|--------------------------- |----------------------------------------|-------------------------|-------------------------------|
+| 1    | FastQC   | Check raw read quality                       | Raw FASTQ files            | FastQC HTML/ZIP reports                | Mandatory               | `-t threads`                  |
+| 1    | MultiQC  | Aggregate FastQC results                     | Folder of FastQC results   | `multiqc_report.html`, `multiqc_data/` | Mandatory               | —                             |
+| 2    | fastp    | Trim adapters, filter low-quality reads      | Raw R1.fastq, R2.fastq     | Cleaned FASTQ files + HTML/JSON report | Mandatory               | `--detect_adapter_for_pe`, quality and length filters |
+| 3    | FastQC   | Check trimmed-read quality                   | Cleaned FASTQ files        | FastQC reports                         | Mandatory               | `-t threads`                  |
+| 3    | MultiQC  | Aggregate post-filter FastQC results         | Folder of FastQC results   | `multiqc_report.html`                  | Mandatory               | —                             |
+| 4    | SeqKit   | Compute read statistics (count, length)      | Cleaned FASTQ files        | Stats table on stdout                  | Mandatory               | —                             |
+| 5    | SPAdes   | De novo genome assembly                      | Cleaned R1.fastq, R2.fastq | `contigs.fasta` (assembly)             | Mandatory               | `--isolate`, `-t threads`, `-m memory` |
+| 5    | QUAST    | Evaluate assembly quality                    | `contigs.fasta` (+ ref)    | Assembly quality reports               | Mandatory               | `-t threads`, `-r ref.fasta` |
+| 6    | Barrnap  | Find rRNA genes (5S, 16S, 23S)               | `contigs.fasta`            | GFF3 with rRNA coordinates             | Mandatory               | `--kingdom bac`     |
+| 7    | grep + bedtools | Extract 16S rRNA sequences from GFF   | `rrna.gff`                 | `16S.fasta`                            | Optional (if 16S found) | `grep "16S_rRNA"`, `bedtools getfasta -s -name` |
+| 8    | SeqKit   | Stats on 16S sequences                       | `16S.fasta`                | Stats table on stdout                  | Optional                | —                             |
+| 9    | FastANI  | Compute genome-wide ANI vs reference         | Assembly FASTA, ref FASTA  | ANI results (tab file)                 | Conditional (if ref.)   | `-q assembly -r reference -o output` |
+| 10   | MEGA12   | Phylogenetic tree construction               | Multiple sequence alignment (MSA) FASTA file of 16S rRNA genes      | Complete phylogenetic tree file             | Conditional (For species identification) | `Desktop GUI (Manual execution)` |
+| 11   | Bakta    | Annotate final genome (genes, proteins, etc.)| Final assembly FASTA       | GFF3, GenBank, FASTA, TSV, JSON      | Mandatory (final step) | `--input assembly.fa --output dir --prefix ID` |
+| 12   | Unicycler| Alternative assembly (short-read only)       | Cleaned R1.fastq, R2.fastq | `assembly.fasta` (Unicycler output) | Optional             | `-1 reads -2 reads -o out -t threads` |
+| 12   | QUAST    | Evaluate Unicycler assembly                  | Unicycler `assembly.fasta` | Assembly reports                    | Optional             | Same as Step 8                |
+| 13   | RagTag   | Reference-guided scaffolding of contigs      | Assembly FASTA, ref FASTA  | `ragtag.scaffold.fasta`             | Conditional (if needed) | `ragtag.py scaffold ref.fa contigs.fa` |
+| 13   | QUAST + SeqKit | Evaluate scaffolded assembly             | `ragtag.scaffold.fasta`   | Reports; contig stats (SeqKit)      | Conditional           | Same as Step 8 + count `N`    |
 This table summarizes each step: **Tool**, **Purpose**, **Inputs/Outputs**, **When to run** (mandatory or conditional), and **Key parameters**. (Steps like Unicycler and RagTag are optional alternatives run only if needed. FastANI requires a reference genome.) The final step is always running Bakta on the chosen assembly to complete annotation.

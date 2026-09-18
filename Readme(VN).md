@@ -1,6 +1,7 @@
 # Quy trình lắp ráp và chú giải bộ gen vi khuẩn
 
 **I. Tóm tắt:** 
+
 <div align="justify">
 Đây là quy trình phân tích dữ liệu Whole Genome Sequencing (WGS) của mẫu vi khuẩn. Các bước chính bao gồm: kiểm tra chất lượng dữ liệu đầu vào, làm sạch adapter và lọc reads, thực hiện lắp ráp de novo, đánh giá chất lượng lắp ráp, phát hiện gen rRNA (bao gồm 16S) và trích xuất trình tự tương ứng, so sánh độ tương đồng genome (ANI) với genome tham chiếu để định danh loài, và cuối cùng là chú giải genome bằng công cụ Bakta. Hình dưới đây minh họa tổng quát luồng công việc; bảng tóm tắt các bước được trình bày bên dưới; và các phần chi tiết mô tả từng công cụ, lệnh, đầu vào/đầu ra, cùng các lưu ý thực thi được giải thích bên dưới.
 </div>
@@ -34,7 +35,7 @@ project/
 │   ├── MultiQC_raw/      # Báo cáo MultiQC (tổng hợp FastQC) cho dữ liệu thô
 │   ├── FastQC_clean/     # Báo cáo FastQC của dữ liệu sau lọc
 │   └── MultiQC_clean/    # Báo cáo MultiQC (tổng hợp) cho dữ liệu đã lọc
-├── sample/               # Kết quả xử lý cho mẫu (ví dụ thư mục "L1")
+├── sample/               # Kết quả xử lý cho mẫu 
 │   ├── sample_R1.clean.fastq    # Reads sạch R1
 │   ├── sample_R2.clean.fastq    # Reads sạch R2
 │   ├── sample_fastp.html        # Báo cáo HTML của fastp
@@ -71,8 +72,12 @@ Thay thế `project/`, `RawRead/`, `sample/` bằng tên thực của dự án v
 
 ### 5.1. Kiểm tra chất lượng dữ liệu thô (FastQC, MultiQC)
 
-- [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/) FastQC kiểm tra chất lượng reads (phân phối điểm chất lượng theo base, GC content, duplicated reads, adapter…); MultiQC tổng hợp kết quả báo cáo.
-  
+- [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/)
+
+<div align="justify">
+  FastQC kiểm tra chất lượng reads (phân phối điểm chất lượng theo base, GC content, duplicated reads, adapter…); MultiQC tổng hợp kết quả báo cáo.
+</div>
+
 ```bash
 Fastqc <path/to/input.fastq.gz> -o <path/to/output_dir> -t 8
 multiqc <path_to_fastqc_results> -o <path_to_multiqc_report>
@@ -81,7 +86,7 @@ multiqc <path_to_fastqc_results> -o <path_to_multiqc_report>
 
 <div align="justify">
 
-* Dữ liệu đầu vào `[Đường dẫn file fastq đầu vào]` của FastQC là các tệp FASTQ thô ở định dạng `.fastq` hoặc nén `.fastq.gz`. Công cụ này sẽ khởi tạo các file báo cáo `fastqc.zip` và `fastqc.html` riêng biệt cho từng tệp dữ liệu `.fastq` trong thư mục đầu ra được chỉ định. Đồng thời để công cụ chạy nhanh hơn có thể tăng số luồng bằng tham số `-t`. Sau đó, MultiQC nhận đầu vào `[Đường dẫn thư mục đầu vào]` là thư mục chứa đầu ra của FastQC và tạo một báo cáo tổng hợp duy nhất `report.html` và lưu trong thư mục đầu ra được chỉ định. Đầu ra giúp kiểm tra các cảnh báo (warnings) như adapter còn sót, base chất lượng thấp, GC bất thường...
+Dữ liệu đầu vào `[Đường dẫn file fastq đầu vào]` của FastQC là các tệp FASTQ thô ở định dạng `.fastq` hoặc nén `.fastq.gz`. Công cụ này sẽ khởi tạo các file báo cáo `fastqc.zip` và `fastqc.html` riêng biệt cho từng tệp dữ liệu `.fastq` trong thư mục đầu ra được chỉ định. Đồng thời để công cụ chạy nhanh hơn có thể tăng số luồng bằng tham số `-t`. Sau đó, MultiQC nhận đầu vào `[Đường dẫn thư mục đầu vào]` là thư mục chứa đầu ra của FastQC và tạo một báo cáo tổng hợp duy nhất `report.html` và lưu trong thư mục đầu ra được chỉ định. Đầu ra giúp kiểm tra các cảnh báo (warnings) như adapter còn sót, base chất lượng thấp, GC bất thường...
 
 </div>
 
